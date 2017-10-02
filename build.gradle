@@ -1,0 +1,20 @@
+buildscript {
+    repositories {  jcenter()  }
+}
+apply plugin: 'java-library'
+
+repositories {
+    mavenLocal()
+    maven { url 'https://repository.cloudera.com/artifactory/cloudera-repos/' }
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client
+compile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.6.0-cdh5.7.0'
+    
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+}
+
