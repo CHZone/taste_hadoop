@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class PartitonerApp {
+public class PartitionerApp {
     public static class MyMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
 
         @Override
@@ -70,7 +70,7 @@ public class PartitonerApp {
         Job job = Job.getInstance(configuration, "wordcount");
         // 写成类Partitioner导致报错
         // 找不到MyMapper
-        job.setJarByClass(PartitonerApp.class);
+        job.setJarByClass(PartitionerApp.class);
 
         // FileInputFormat
         FileInputFormat.setInputPaths(job, new Path(args[0]));
