@@ -48,7 +48,7 @@ public class CombinerApp {
             System.out.println("delete existing output files");
         }
         // 获取作业实例
-        Job job = Job.getInstance();
+        Job job = Job.getInstance(configuration,"wordcount");
         //设置作业主类
         job.setJarByClass(CombinerApp.class);
         

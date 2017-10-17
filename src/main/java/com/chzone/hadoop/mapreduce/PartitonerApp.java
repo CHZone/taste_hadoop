@@ -9,30 +9,39 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-/**
- * @author chzone 执行前删除目录
- */
-public class WordCountApp2 {
-    /**
-     * 为毛要搞成静态呢
-     */
+public class PartitonerApp {
     public static class MyMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
-        LongWritable one = new LongWritable(1);
 
         @Override
         protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, LongWritable>.Context context)
                 throws IOException, InterruptedException {
-            // 接受数据
-            String str = value.toString();
-            String[] words = str.split("\\s+");
-            for (String word : words) {
-                context.write(new Text(word), one);
-            }
+            String line = value.toString();
+            String[] words = line.split("\\s+");
+            context.write(new Text(words[0]), new LongWritable(Long.parseLong(words[1])));
         }
+    }
+
+    public static class MyPartitioner extends Partitioner<Text, LongWritable> {
+
+        @Override
+        public int getPartition(Text key, LongWritable value, int numPartitions) {
+            if (key.toString().equals("xiaomi")) {
+                return 0;
+            }
+            if (key.toString().equals("huawei")) {
+                return 1;
+            }
+            if (key.toString().equals("iphone7")) {
+                return 2;
+            }
+            return 3;
+        }
+
     }
 
     public static class MyReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
@@ -46,41 +55,44 @@ public class WordCountApp2 {
             }
             context.write(key, new LongWritable(sum));
         }
-
     }
 
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-
-        // 清除已经存在的输出目录
-        Path outputPath = new Path(args[1]);
         FileSystem fileSystem = FileSystem.get(configuration);
+        Path outputPath = new Path(args[1]);
         if (fileSystem.exists(outputPath)) {
             fileSystem.delete(outputPath, true);
-            System.out.println("out put file exists, but is has been deleted");
+            System.out.println("out put file exists ,but has been deleted");
         }
 
-        // 创建Job
-        Job job = Job.getInstance(configuration,"wordcount");
-        // 设置作业类
-        job.setJarByClass(WordCountApp2.class);
+        // Job
+        Job job = Job.getInstance(configuration, "wordcount");
+        // 写成类Partitioner导致报错
+        // 找不到MyMapper
+        job.setJarByClass(PartitonerApp.class);
 
-        // 设置作业处理文件路径
+        // FileInputFormat
         FileInputFormat.setInputPaths(job, new Path(args[0]));
 
-        // 设置map相关参数
+        // Mapper
         job.setMapperClass(MyMapper.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(LongWritable.class);
 
-        // 设置reduce相关参数
+        // Reducer
         job.setReducerClass(MyReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(LongWritable.class);
 
-        // 设置作业输出路径
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.out.println(job.waitForCompletion(true) ? 0 : 1);
+        // Partitioner
+        job.setPartitionerClass(MyPartitioner.class);
+        // 设置4个reducer每个分区一个
+        job.setNumReduceTasks(4);
+        // FileOutputFormat
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
 

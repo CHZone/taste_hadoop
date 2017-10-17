@@ -17,6 +17,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.Progressable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ public class HDFSApp {
         configuration = new Configuration();
         fileSystem = FileSystem.get(new URI(HDFS_PATH), configuration, "caihuorong");
     }
-
+    @After
     public void tearDown() {
         configuration = null;
         fileSystem = null;
